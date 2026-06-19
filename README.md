@@ -17,7 +17,7 @@ If you want to test the absolute latest features, you can clone this branch and 
 
 1. Clone this specific branch:
    ```bash
-   git clone -b dev https://github.com
+   git clone -b dev https://github.com/code44ka/SimpleFallbacks.git
    ```
 2. Navigate to the project directory:
    ```bash
