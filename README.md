@@ -32,4 +32,4 @@ The compiled `.jar` file will be located in the `build/libs/` directory.
 ## 🤝 Contributing & Feedback
 If you encounter any bugs while testing this branch, please open an issue on our [Issues Page](https://github.com) and make sure to specify that you are using the `dev` branch.
 
-To return to the stable version, please switch to the [master branch](https://github.com).
+To return to the stable version, please switch to the [master branch](https://github.com](https://github.com/code44ka/SimpleFallbacks).
