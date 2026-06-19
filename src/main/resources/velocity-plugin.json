@@ -1,0 +1,6 @@
+{
+  "id": "simplefallbacks",
+  "name": "SimpleFallbacks",
+  "version": "${version}",
+  "main": "SunShineGroup.simpleFallbacks.SimpleFallbacks"
+}
