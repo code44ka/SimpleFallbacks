@@ -25,14 +25,11 @@ public class FallbackSessionHandler implements LimboSessionHandler {
         LimboSessionHandler.super.onSpawn(server, limboPlayer);
         limboPlayer.disableFalling();
 
-        Player player = limboPlayer.getProxyPlayer();
-        this.player = player;
+        this.player = limboPlayer.getProxyPlayer();
 
         this.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Не удалось подключиться к " + this.server.getServerInfo().getName() + ".</red>"));
         this.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Вы отправлены в лимбо."));
         this.player.showTitle(Title.title(MiniMessage.miniMessage().deserialize("<red>Не удалось подключиться</red>"), Component.empty()));
-
-        limboPlayer.flushPackets();
     }
 
     @Override

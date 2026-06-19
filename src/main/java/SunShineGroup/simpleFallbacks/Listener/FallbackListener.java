@@ -14,6 +14,7 @@ import net.elytrium.limboapi.api.chunk.Dimension;
 import net.elytrium.limboapi.api.chunk.VirtualWorld;
 import net.elytrium.limboapi.api.event.LoginLimboRegisterEvent;
 import net.elytrium.limboapi.api.player.GameMode;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,39 +34,11 @@ public class FallbackListener {
     }
 
     @Subscribe
-    public void onKickEvent(KickedFromServerEvent e) {
-        Player player = e.getPlayer();
-        RegisteredServer server = e.getServer();
-
-        String serverName = server.getServerInfo().getName();
-
-        if (serverName.equals(config.getString("settings.limbo.name")))
-            return;
-
-        plugin.getLogger().warn("Player kicked from {} server", serverName);
-
-        List<String> fallbacks = config.getStringList("settings.fallback-servers");
-        List<String> avaibleFallbacks = new ArrayList<>();
-
-        for (String fallback : fallbacks) {
-            if (fallback.equals(serverName)) {
-                sendToLimbo(player, server);
-
-                return;
-            }
-
-            avaibleFallbacks.add(fallback);
-        }
-
-        e.setResult(KickedFromServerEvent.RedirectPlayer.create(proxy.getServer(avaibleFallbacks.get(0)).get()));
-    }
-
-    //@Subscribe
     public void onLimboLogin(LoginLimboRegisterEvent e) {
-        e.setOnKickCallback(kickEvent -> {
-            Player player = kickEvent.getPlayer();
-            RegisteredServer server = kickEvent.getServer();
+        Player player = e.getPlayer();
 
+        e.setOnKickCallback(kickEvent -> {
+            RegisteredServer server = kickEvent.getServer();
             String serverName = server.getServerInfo().getName();
 
             if (serverName.equals(config.getString("settings.limbo.name")))
@@ -80,15 +53,19 @@ public class FallbackListener {
                 if (fallback.equals(serverName)) {
                      sendToLimbo(player, server);
 
-                     return false;
+                     return true;
                 }
 
                 avaibleFallbacks.add(fallback);
             }
 
-            kickEvent.setResult(KickedFromServerEvent.RedirectPlayer.create(proxy.getServer(avaibleFallbacks.get(0)).get()));
+            player.createConnectionRequest(proxy.getServer(avaibleFallbacks.get(0)).get()).connect().thenAccept(result -> {
+                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Сервер " + serverName + " выключен. Присоеденитесь позже.</red>"));
+                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Вы перемещены на сервер " + avaibleFallbacks.get(0) + ".</red>"));
+                return;
+            });
 
-            return false;
+            return true;
         });
     }
 
