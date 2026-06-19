@@ -16,6 +16,7 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import net.elytrium.limboapi.api.LimboFactory;
+import net.elytrium.limboapi.api.event.LoginLimboRegisterEvent;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -58,6 +59,8 @@ public class SimpleFallbacks {
         limboFactory = (LimboFactory) server.getPluginManager().getPlugin("limboapi").flatMap(PluginContainer::getInstance).orElseThrow();
         fallbackListener = new FallbackListener(this);
         fallbackListener.CreateLimbo();
+
+        server.getEventManager().register(this, fallbackListener);
     }
 
     private void loadConfiguration() {
