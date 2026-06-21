@@ -4,6 +4,7 @@ import SunShineGroup.simpleFallbacks.Fallback.FallbackManager;
 import SunShineGroup.simpleFallbacks.Fallback.FallbackSessionHandler;
 import SunShineGroup.simpleFallbacks.SimpleFallbacks;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.player.KickedFromServerEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
@@ -14,6 +15,7 @@ import net.elytrium.limboapi.api.chunk.Dimension;
 import net.elytrium.limboapi.api.chunk.VirtualWorld;
 import net.elytrium.limboapi.api.event.LoginLimboRegisterEvent;
 import net.elytrium.limboapi.api.player.GameMode;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 
@@ -31,6 +33,11 @@ public class FallbackListener {
         config = plugin.getConfig();
         messagesConfig = plugin.getMessagesConfig();
         limboFactory = this.plugin.getLimboFactory();
+
+        if (config.getBoolean("settings.limbo.enabled"))
+            CreateLimbo();
+        else
+            plugin.getLogger().warn("Limbo was disabled in the config");
     }
 
     @Subscribe
@@ -41,6 +48,14 @@ public class FallbackListener {
             RegisteredServer fromServer = kickEvent.getServer();
             String serverName = fromServer.getServerInfo().getName();
 
+            if (kickEvent.kickedDuringServerConnect()) {
+                if (!FallbackManager.fallbackManager().isFallbackServer(serverName)) {
+                    player.sendMessage(MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.kick").replace("{server}", fromServer.getServerInfo().getName()).trim()));
+
+                    return true;
+                }
+            }
+
             if (serverName.equals(config.getString("settings.limbo.name")))
                 return false;
 
@@ -49,13 +64,18 @@ public class FallbackListener {
             RegisteredServer fallbackServer = FallbackManager.fallbackManager().getFallbackServer();
 
             if (fallbackServer == null) {
-                plugin.getLogger().warn("Игрок отправлен в лимбо");
-                sendToLimbo(player, fromServer);
+                if (config.getBoolean("settings.limbo.enabled")) {
+                    sendToLimbo(player, fromServer);
 
-                return true;
+                    return true;
+                }
+                else {
+                    kickEvent.setResult(KickedFromServerEvent.Notify.create(MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.if-no-avaible-fallbacks.kick-message").trim())));
+
+                    return false;
+                }
             }
 
-            plugin.getLogger().warn("Игрок отправлен на фаллбэк сервер");
             sendToFallbackServer(player, fromServer, fallbackServer);
 
             return true;
@@ -64,12 +84,14 @@ public class FallbackListener {
 
     public void sendToFallbackServer(Player player, RegisteredServer fromServer, RegisteredServer toServer) {
         player.createConnectionRequest(toServer).connect().thenAccept(result -> {
-            player.sendMessage(MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.join").replace("{server}", toServer.getServerInfo().getName())));
+            player.sendMessage(MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.join").replace("{server}", fromServer.getServerInfo().getName()).trim()));
             player.showTitle(Title.title(
                     MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.title").replace("{server}", toServer.getServerInfo().getName())),
-                    MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.subtitle").replace("{server}", toServer.getServerInfo().getName())
+                    MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.subtitle").replace("{server}", fromServer.getServerInfo().getName())
             )));
         });
+
+        plugin.getLogger().warn("Player sent to fallback server: {}", toServer.getServerInfo().getName());
     }
 
     public void CreateLimbo() {
@@ -92,5 +114,6 @@ public class FallbackListener {
 
     private void sendToLimbo(Player player, RegisteredServer server) {
         limbo.spawnPlayer(player, new FallbackSessionHandler(plugin, server));
+        plugin.getLogger().warn("Player sent to limbo");
     }
 }

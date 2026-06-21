@@ -1,12 +1,25 @@
 messages:
   fallback:
     join: |
-      <red>Сервер {server} выключен, перемещаем вас в лобби.</red>
-    title: "<red>Перемещаем вас в лобби {server}</red>"
-    subtitle: "<red>Сервер {server} выключен</red>"
+      <gradient:#ff0000:#ff772e>Server {server} is offline, moving you to the lobby.</gradient>
+    kick: |
+      <gradient:#ff0000:#ff772e>Server {server} is offline.</gradient>
+    title: "<gradient:#ff0000:#ff772e>Moving to lobby {server}</gradient>"
+    subtitle: "<gradient:#ff0000:#ff772e>Server {server} is offline</gradient>"
 
   limbo:
     join: |
-      <red>Сервер {server} выключен, перемещаем вас в лимбо.</red>
-    title: "<red>Вы отправлены в лимбо</red>"
-    subtitle: "<red/>Сервер {server} недоступен</red>"
+      <gradient:#ff0000:#ff772e>Server {server} is offline, moving you to limbo.</gradient>
+    title: "<gradient:#ff0000:#ff772e>You have been sent to limbo</gradient>"
+    subtitle: "<gradient:#ff0000:#ff772e>Server {server} is unavailable</gradient>"
+
+  if-no-avaible-fallbacks:
+    kick-message: |
+      <gradient:#ff0000:#ff772e>All fallback servers are disabled</gradient>
+
+  hub:
+    already: |
+      <gradient:#ff0000:#ff772e>You are already in the hub!</gradient>
+
+    move: |
+      <gradient:#ff0000:#ff772e>You have been moved to the hub</gradient>

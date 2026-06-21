@@ -9,9 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class FallbackManager {
     private static Random rnd = new Random();
+
+    private List<String> fallbacks;
 
     private static FallbackManager fallbackManager;
 
@@ -32,10 +35,10 @@ public class FallbackManager {
         this.plugin = plugin;
         this.proxyServer = plugin.getServer();
         this.config = plugin.getConfig();
+        fallbacks = config.getStringList("settings.fallback-servers");
     }
 
     public List<String> getAvaibleFallbacks() {
-        List<String> fallbacks = config.getStringList("settings.fallback-servers");
         List<String> avaibleFallbacks = new ArrayList<>();
 
         for (String fallback : fallbacks) {
@@ -48,17 +51,18 @@ public class FallbackManager {
             }
         }
 
-        if (avaibleFallbacks == null || avaibleFallbacks.isEmpty())
-            return null;
-
         return avaibleFallbacks;
+    }
+
+    public List<String> getFallbacks() {
+        return fallbacks;
     }
 
     public RegisteredServer getFallbackServer() {
         List<String> avaibleFallbacks = getAvaibleFallbacks();
 
-        if (avaibleFallbacks == null)
-           return null;
+        if (avaibleFallbacks.isEmpty())
+            return null;
 
         RegisteredServer fallbackServer = proxyServer.getServer(avaibleFallbacks.get(rnd.nextInt(0, avaibleFallbacks.size()))).get();
 
@@ -67,10 +71,17 @@ public class FallbackManager {
 
     private Boolean isServerOnline(RegisteredServer registeredServer) {
         try {
-            registeredServer.ping().join();
+            registeredServer.ping().get(100, TimeUnit.MILLISECONDS);
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public Boolean isFallbackServer(String server) {
+        if (fallbacks.contains(server))
+            return true;
+
+        return false;
     }
 }

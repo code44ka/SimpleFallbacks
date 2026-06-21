@@ -1,8 +1,11 @@
 package SunShineGroup.simpleFallbacks;
 
+import SunShineGroup.simpleFallbacks.Commands.FallbacksCommand;
+import SunShineGroup.simpleFallbacks.Commands.HubCommand;
 import SunShineGroup.simpleFallbacks.Fallback.FallbackManager;
 import SunShineGroup.simpleFallbacks.Listener.FallbackListener;
 import com.google.inject.Inject;
+import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Dependency;
@@ -33,6 +36,7 @@ public class SimpleFallbacks {
     private final ProxyServer server;
     private final Logger logger;
     private final Path dataDirectory;
+    private final CommandManager commandManager;
 
     private LimboFactory limboFactory;
 
@@ -44,10 +48,11 @@ public class SimpleFallbacks {
     private YamlDocument messagesConfig;
 
     @Inject
-    public SimpleFallbacks(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+    public SimpleFallbacks(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory, CommandManager commandManager) {
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
+        this.commandManager = commandManager;
 
         loadConfiguration();
 
@@ -61,13 +66,35 @@ public class SimpleFallbacks {
         FallbackManager.fallbackManager().init(this);
 
         fallbackListener = new FallbackListener(this);
-        fallbackListener.CreateLimbo();
 
         registerEvents();
+        registerCommands();
     }
 
     private void registerEvents() {
         server.getEventManager().register(this, fallbackListener);
+
+        logger.info("Events are registered");
+    }
+
+    private void registerCommands() {
+        commandManager.register(
+                commandManager.metaBuilder("hub")
+                        .aliases("lobby")
+                        .plugin(this)
+                        .build(),
+                new HubCommand(this)
+        );
+
+        commandManager.register(
+                commandManager.metaBuilder("fallbacks")
+                        .plugin(this)
+                        .build(),
+                new FallbacksCommand(this)
+
+        );
+
+        logger.info("Commands are registered");
     }
 
     private void loadConfiguration() {

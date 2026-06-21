@@ -11,6 +11,8 @@ settings:
     z: 0
     yaw: 0
     pitch: 0
+    max-attempts: 0 # 0 = infinity
+    reconnect-delay: 10000 # IN MILLISECONDS
 
   # Сервера на которые будет отправлять при выключении сервера
   fallback-servers:
