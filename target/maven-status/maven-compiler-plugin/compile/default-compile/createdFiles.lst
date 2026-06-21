@@ -1,3 +1,6 @@
 SunShineGroup\simpleFallbacks\Listener\FallbackListener.class
-SunShineGroup\simpleFallbacks\Fallback\FallbackSessionHandler.class
+SunShineGroup\simpleFallbacks\Commands\HubCommand.class
 SunShineGroup\simpleFallbacks\SimpleFallbacks.class
+SunShineGroup\simpleFallbacks\Fallback\FallbackManager.class
+SunShineGroup\simpleFallbacks\Commands\FallbacksCommand.class
+SunShineGroup\simpleFallbacks\Fallback\FallbackSessionHandler.class
