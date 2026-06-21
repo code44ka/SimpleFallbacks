@@ -1,35 +1,23 @@
-# 🚧 SimpleFallbacks — Development Branch (`dev`)
+#  SimpleFallbacks
+A lightweight and efficient `Velocity` proxy plugin designed to keep players connected when backend servers go offline. Powered by `LimboAPI`, it seamlessly moves players to a `virtual Limbo world` or a `fallback server` instead of kicking them from the network.
 
-Welcome to the development branch of **SimpleFallbacks**! This branch contains the latest features, experimental code, and active bug fixes that are currently being tested for the next official release.
+# ✨ FeaturesVirtual
+**Limbo Worlds:** Hosts players in a lightweight, virtual `Limbo space` using `LimboAPI` if no servers are available.  
+**Smart Fallback Routing:** Automatically transfers players from a disconnected or crashing server to an active lobby/hub server.  
+**Customizable Messages:** Configure exactly what players see during transitions or server failures.  
+**Performance Focused:** Built specifically for `Velocity`, ensuring minimal resource usage and maximum stability.  
 
-> ⚠️ **Disclaimer:** Code in this branch is a work in progress (WIP). It may be unstable, contain bugs, or change completely without notice. **Do not use this branch on production servers!**
+# 🚀 Requirements
+- Proxy: [Velocity](https://papermc.io/downloads/velocity)  
+- Dependency: [LimboAPI](https://github.com/Elytrium/LimboAPI/releases)  
 
----
+# 🛠️ Installation
+1. Download the latest `.jar` file from the Releases page.  
+2. Drop the file into your Velocity `plugins/` directory.  
+3. Ensure **LimboAPI** is also installed in the same folder.  
+4. Restart your Velocity proxy.  
+5. Configure the `config.yml` file in `plugins/simplefallbacks/` to match your server setup.
 
-## 🛠️ Current Development Focus
-We are currently working on adding and improving the following systems:
-* **Enhanced Virtual Limbo:** Optimizing performance under heavy player loads.
-* **Auto-Reconnect System:** Trying to reconnect players to their original server before moving them to fallback.
-* **Config Reload Command:** Adding a hot-reload feature without restarting the proxy.
 
-## 📦 How to Test & Compile
-If you want to test the absolute latest features, you can clone this branch and compile it yourself using Gradle:
-
-1. Clone this specific branch:
-   ```bash
-   git clone -b dev https://github.com/code44ka/SimpleFallbacks.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd SimpleFallbacks
-   ```
-3. Build the plugin:
-   ```bash
-   ./gradlew build
-   ```
-The compiled `.jar` file will be located in the `build/libs/` directory.
-
-## 🤝 Contributing & Feedback
-If you encounter any bugs while testing this branch, please open an issue on our [Issues Page](https://github.com/code44ka/SimpleFallbacks/issues) and make sure to specify that you are using the `dev` branch.
-
-To return to the stable version, please switch to the [master branch](https://github.com/code44ka/SimpleFallbacks).
+> ### 🚧 Work In Progress
+> This plugin is actively under development. Expect frequent updates, improvements, and new features!
