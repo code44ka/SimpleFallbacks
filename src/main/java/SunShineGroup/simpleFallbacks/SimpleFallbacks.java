@@ -1,5 +1,6 @@
 package SunShineGroup.simpleFallbacks;
 
+import SunShineGroup.simpleFallbacks.Fallback.FallbackManager;
 import SunShineGroup.simpleFallbacks.Listener.FallbackListener;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
@@ -10,13 +11,10 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import dev.dejvokep.boostedyaml.YamlDocument;
-import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
-import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import net.elytrium.limboapi.api.LimboFactory;
-import net.elytrium.limboapi.api.event.LoginLimboRegisterEvent;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -39,9 +37,11 @@ public class SimpleFallbacks {
     private LimboFactory limboFactory;
 
     private FallbackListener fallbackListener;
+    private FallbackManager fallbackManager;
 
     // CONFIGS
     private YamlDocument config;
+    private YamlDocument messagesConfig;
 
     @Inject
     public SimpleFallbacks(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
@@ -57,9 +57,16 @@ public class SimpleFallbacks {
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent e) {
         limboFactory = (LimboFactory) server.getPluginManager().getPlugin("limboapi").flatMap(PluginContainer::getInstance).orElseThrow();
+
+        FallbackManager.fallbackManager().init(this);
+
         fallbackListener = new FallbackListener(this);
         fallbackListener.CreateLimbo();
 
+        registerEvents();
+    }
+
+    private void registerEvents() {
         server.getEventManager().register(this, fallbackListener);
     }
 
@@ -74,6 +81,14 @@ public class SimpleFallbacks {
             config.update();
             config.save();
 
+            messagesConfig = YamlDocument.create(new File(dataDirectory.toFile(), "messages.yml"),
+                    getClass().getResourceAsStream("/messages.yml"),
+                    GeneralSettings.DEFAULT,
+                    LoaderSettings.builder().setAutoUpdate(true).build(),
+                    DumperSettings.DEFAULT);
+
+            messagesConfig.update();
+            messagesConfig.save();
         } catch (IOException e) {
             logger.error("Cannot create config file");
         }
@@ -81,6 +96,10 @@ public class SimpleFallbacks {
 
     public YamlDocument getConfig() {
         return config;
+    }
+
+    public YamlDocument getMessagesConfig() {
+        return  messagesConfig;
     }
 
     public Logger getLogger() {

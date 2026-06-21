@@ -1,6 +1,6 @@
 package SunShineGroup.simpleFallbacks.Fallback;
 
-public enum FallbackType {
-    LOBBY_FALL,
-    SERVER_FALL
+public enum RedirectType {
+    LOBBY_REDIRECT,
+    LIMBO_REDIRECT
 }

@@ -1,3 +1,5 @@
 SunShineGroup\simpleFallbacks\Listener\FallbackListener.class
-SunShineGroup\simpleFallbacks\Fallback\FallbackSessionHandler.class
 SunShineGroup\simpleFallbacks\SimpleFallbacks.class
+SunShineGroup\simpleFallbacks\Fallback\FallbackManager.class
+SunShineGroup\simpleFallbacks\Fallback\RedirectType.class
+SunShineGroup\simpleFallbacks\Fallback\FallbackSessionHandler.class

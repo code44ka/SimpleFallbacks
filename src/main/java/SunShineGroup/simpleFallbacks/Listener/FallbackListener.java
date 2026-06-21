@@ -1,9 +1,9 @@
 package SunShineGroup.simpleFallbacks.Listener;
 
+import SunShineGroup.simpleFallbacks.Fallback.FallbackManager;
 import SunShineGroup.simpleFallbacks.Fallback.FallbackSessionHandler;
 import SunShineGroup.simpleFallbacks.SimpleFallbacks;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.player.KickedFromServerEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
@@ -15,14 +15,13 @@ import net.elytrium.limboapi.api.chunk.VirtualWorld;
 import net.elytrium.limboapi.api.event.LoginLimboRegisterEvent;
 import net.elytrium.limboapi.api.player.GameMode;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.kyori.adventure.title.Title;
 
 public class FallbackListener {
     private final SimpleFallbacks plugin;
     private final ProxyServer proxy;
     private final YamlDocument config;
+    private final YamlDocument messagesConfig;
     private final LimboFactory limboFactory;
     private Limbo limbo;
 
@@ -30,6 +29,7 @@ public class FallbackListener {
         this.plugin = plugin;
         proxy = plugin.getServer();
         config = plugin.getConfig();
+        messagesConfig = plugin.getMessagesConfig();
         limboFactory = this.plugin.getLimboFactory();
     }
 
@@ -38,34 +38,37 @@ public class FallbackListener {
         Player player = e.getPlayer();
 
         e.setOnKickCallback(kickEvent -> {
-            RegisteredServer server = kickEvent.getServer();
-            String serverName = server.getServerInfo().getName();
+            RegisteredServer fromServer = kickEvent.getServer();
+            String serverName = fromServer.getServerInfo().getName();
 
             if (serverName.equals(config.getString("settings.limbo.name")))
                 return false;
 
             plugin.getLogger().warn("Player kicked from {} server", serverName);
 
-            List<String> fallbacks = config.getStringList("settings.fallback-servers");
-            List<String> avaibleFallbacks = new ArrayList<>();
+            RegisteredServer fallbackServer = FallbackManager.fallbackManager().getFallbackServer();
 
-            for (String fallback : fallbacks) {
-                if (fallback.equals(serverName)) {
-                     sendToLimbo(player, server);
+            if (fallbackServer == null) {
+                plugin.getLogger().warn("Игрок отправлен в лимбо");
+                sendToLimbo(player, fromServer);
 
-                     return true;
-                }
-
-                avaibleFallbacks.add(fallback);
+                return true;
             }
 
-            player.createConnectionRequest(proxy.getServer(avaibleFallbacks.get(0)).get()).connect().thenAccept(result -> {
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Сервер " + serverName + " выключен. Присоеденитесь позже.</red>"));
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Вы перемещены на сервер " + avaibleFallbacks.get(0) + ".</red>"));
-                return;
-            });
+            plugin.getLogger().warn("Игрок отправлен на фаллбэк сервер");
+            sendToFallbackServer(player, fromServer, fallbackServer);
 
             return true;
+        });
+    }
+
+    public void sendToFallbackServer(Player player, RegisteredServer fromServer, RegisteredServer toServer) {
+        player.createConnectionRequest(toServer).connect().thenAccept(result -> {
+            player.sendMessage(MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.join").replace("{server}", toServer.getServerInfo().getName())));
+            player.showTitle(Title.title(
+                    MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.title").replace("{server}", toServer.getServerInfo().getName())),
+                    MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.subtitle").replace("{server}", toServer.getServerInfo().getName())
+            )));
         });
     }
 

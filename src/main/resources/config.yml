@@ -5,12 +5,13 @@ settings:
     enabled: true
     gamemode: ADVENTURE
     name: "Fallback"
-    world: THE_END
+    world: THE_END # OVERWORLD, THE_NETHER, THE_END,
     x: 0
     y: 500
     z: 0
     yaw: 0
     pitch: 0
 
+  # Сервера на которые будет отправлять при выключении сервера
   fallback-servers:
       - "lobby"
