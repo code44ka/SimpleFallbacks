@@ -10,6 +10,7 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import net.elytrium.limboapi.api.Limbo;
 import net.elytrium.limboapi.api.LimboSessionHandler;
 import net.elytrium.limboapi.api.player.LimboPlayer;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 
@@ -21,6 +22,7 @@ public class FallbackSessionHandler implements LimboSessionHandler {
     private final RegisteredServer fromServer;
     private final YamlDocument config;
     private final YamlDocument messageConfig;
+    private final YamlDocument localization;
     private final int reconnectDelay;
     private final int maxAttempts;
     private int attempts = 0;
@@ -31,9 +33,10 @@ public class FallbackSessionHandler implements LimboSessionHandler {
     public FallbackSessionHandler(SimpleFallbacks plugin, RegisteredServer server) {
         this.plugin = plugin;
         this.fromServer = server;
-        this.proxy = plugin.getServer();
-        this.config = plugin.getConfig();
-        this.messageConfig = plugin.getMessagesConfig();
+        this.proxy = this.plugin.getServer();
+        this.config = this.plugin.getConfig();
+        this.messageConfig = this.plugin.getMessagesConfig();
+        this.localization = this.plugin.getLocalization();
 
         maxAttempts = config.getInt("settings.limbo.max-attempts", 5);
         reconnectDelay = config.getInt("settings.limbo.reconnect-delay", 10000);
@@ -49,11 +52,30 @@ public class FallbackSessionHandler implements LimboSessionHandler {
 
         String serverName = this.fromServer.getServerInfo().getName();
 
-        this.player.sendMessage(MiniMessage.miniMessage().deserialize(messageConfig.getString("messages.limbo.join").replace("{server}", serverName)));
-        this.player.showTitle(Title.title(
-                MiniMessage.miniMessage().deserialize(messageConfig.getString("messages.limbo.title")),
-                MiniMessage.miniMessage().deserialize(messageConfig.getString("messages.limbo.subtitle").replace("{server}", serverName))
-        ));
+        if (messageConfig.getBoolean("messages.limbo.join"))
+            this.player.sendMessage(MiniMessage.miniMessage().deserialize(localization.getString("messages.limbo.join").replace("{server}", serverName)));
+
+        if (messageConfig.getBoolean("messages.limbo.title") && messageConfig.getBoolean("messages.limbo.subtitle"))
+        {
+            this.player.showTitle(Title.title(
+                    MiniMessage.miniMessage().deserialize(localization.getString("messages.limbo.title")),
+                    MiniMessage.miniMessage().deserialize(localization.getString("messages.limbo.subtitle").replace("{server}", serverName))
+            ));
+        }
+
+        else if (!messageConfig.getBoolean("messages.limbo.title") && messageConfig.getBoolean("messages.limbo.subtitle")) {
+            this.player.showTitle(Title.title(
+                    Component.empty(),
+                    MiniMessage.miniMessage().deserialize(localization.getString("messages.limbo.subtitle").replace("{server}", serverName))
+            ));
+        }
+
+        else if (messageConfig.getBoolean("messages.limbo.title") && !messageConfig.getBoolean("messages.limbo.subtitle")) {
+            this.player.showTitle(Title.title(
+                    MiniMessage.miniMessage().deserialize(localization.getString("messages.limbo.title")),
+                    Component.empty()
+            ));
+        }
 
         //startReconnectTask();
     }

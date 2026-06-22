@@ -2,6 +2,7 @@ package SunShineGroup.simpleFallbacks;
 
 import SunShineGroup.simpleFallbacks.Commands.FallbacksCommand;
 import SunShineGroup.simpleFallbacks.Commands.HubCommand;
+import SunShineGroup.simpleFallbacks.Commands.SimpleFallbacksCommand;
 import SunShineGroup.simpleFallbacks.Fallback.FallbackManager;
 import SunShineGroup.simpleFallbacks.Listener.FallbackListener;
 import com.google.inject.Inject;
@@ -46,6 +47,7 @@ public class SimpleFallbacks {
     // CONFIGS
     private YamlDocument config;
     private YamlDocument messagesConfig;
+    private YamlDocument localization;
 
     @Inject
     public SimpleFallbacks(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory, CommandManager commandManager) {
@@ -61,14 +63,19 @@ public class SimpleFallbacks {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent e) {
-        limboFactory = (LimboFactory) server.getPluginManager().getPlugin("limboapi").flatMap(PluginContainer::getInstance).orElseThrow();
-
-        FallbackManager.fallbackManager().init(this);
-
-        fallbackListener = new FallbackListener(this);
+        reload();
 
         registerEvents();
         registerCommands();
+    }
+
+    public void reload() {
+        limboFactory = (LimboFactory) server.getPluginManager().getPlugin("limboapi").flatMap(PluginContainer::getInstance).orElseThrow();
+        FallbackManager.fallbackManager().init(this);
+        fallbackListener = new FallbackListener(this);
+
+        loadConfiguration();
+        logger.warn("Plugin reloaded");
     }
 
     private void registerEvents() {
@@ -78,6 +85,14 @@ public class SimpleFallbacks {
     }
 
     private void registerCommands() {
+        commandManager.register(
+                commandManager.metaBuilder("simplefallbacks")
+                        .aliases("sf")
+                        .plugin(this)
+                        .build(),
+                new SimpleFallbacksCommand(this)
+        );
+
         commandManager.register(
                 commandManager.metaBuilder("hub")
                         .aliases("lobby")
@@ -116,6 +131,18 @@ public class SimpleFallbacks {
 
             messagesConfig.update();
             messagesConfig.save();
+
+            String locale = config.getString("locale", "en_us");
+
+            localization = YamlDocument.create(dataDirectory.resolve("localizations").resolve(locale + ".yml").toFile(),
+                    getClass().getResourceAsStream("/localizations/" + locale + ".yml"),
+                    GeneralSettings.DEFAULT,
+                    LoaderSettings.builder().setAutoUpdate(true).build(),
+                    DumperSettings.DEFAULT);
+
+            localization.update();
+            localization.save();
+
         } catch (IOException e) {
             logger.error("Cannot create config file");
         }
@@ -139,5 +166,9 @@ public class SimpleFallbacks {
 
     public ProxyServer getServer() {
         return server;
+    }
+
+    public YamlDocument getLocalization() {
+        return localization;
     }
 }

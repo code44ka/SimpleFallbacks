@@ -1,4 +1,5 @@
 prefix: "[SimpleFallbacks]"
+locale: "en_us"
 
 settings:
   limbo:

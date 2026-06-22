@@ -14,11 +14,13 @@ public class HubCommand implements SimpleCommand {
     private final SimpleFallbacks plugin;
     private final ProxyServer proxy;
     private final YamlDocument messagesConfig;
+    private final YamlDocument localization;
 
     public HubCommand(SimpleFallbacks plugin) {
         this.plugin = plugin;
-        this.proxy = plugin.getServer();
-        this.messagesConfig = plugin.getMessagesConfig();
+        this.proxy = this.plugin.getServer();
+        this.messagesConfig = this.plugin.getMessagesConfig();
+        this.localization = this.plugin.getLocalization();
     }
 
     @Override
@@ -35,14 +37,16 @@ public class HubCommand implements SimpleCommand {
             String currentServer = present.getServer().getServerInfo().getName();
 
             if (FallbackManager.fallbackManager().isFallbackServer(currentServer)) {
-                player.sendMessage(MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.hub.already").trim()));
+                if (messagesConfig.getBoolean("messages.hub.already"))
+                    player.sendMessage(MiniMessage.miniMessage().deserialize(localization.getString("messages.hub.already").trim()));
                 return;
             }
 
             RegisteredServer registeredServer = FallbackManager.fallbackManager().getFallbackServer();
 
             player.createConnectionRequest(registeredServer).connect().thenAccept(result -> {
-                player.sendMessage(MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.hub.move").trim()));
+                if (messagesConfig.getBoolean("messages.hub.move"))
+                    player.sendMessage(MiniMessage.miniMessage().deserialize(localization.getString("messages.hub.move").trim()));
             });
         });
     }

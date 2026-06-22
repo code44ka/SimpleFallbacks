@@ -24,17 +24,19 @@ public class FallbackListener {
     private final ProxyServer proxy;
     private final YamlDocument config;
     private final YamlDocument messagesConfig;
+    private final YamlDocument localization;
     private final LimboFactory limboFactory;
     private Limbo limbo;
 
     public FallbackListener(SimpleFallbacks plugin) {
         this.plugin = plugin;
-        proxy = plugin.getServer();
-        config = plugin.getConfig();
-        messagesConfig = plugin.getMessagesConfig();
-        limboFactory = this.plugin.getLimboFactory();
+        this.proxy = this.plugin.getServer();
+        this.config = this.plugin.getConfig();
+        this.messagesConfig = this.plugin.getMessagesConfig();
+        this.limboFactory = this.plugin.getLimboFactory();
+        this.localization = this.plugin.getLocalization();
 
-        if (config.getBoolean("settings.limbo.enabled"))
+        if (this.config.getBoolean("settings.limbo.enabled"))
             CreateLimbo();
         else
             plugin.getLogger().warn("Limbo was disabled in the config");
@@ -70,7 +72,8 @@ public class FallbackListener {
                     return true;
                 }
                 else {
-                    kickEvent.setResult(KickedFromServerEvent.Notify.create(MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.if-no-avaible-fallbacks.kick-message").trim())));
+                    if (localization.getBoolean("messages.if-no-avaible-fallbacks"))
+                        kickEvent.setResult(KickedFromServerEvent.Notify.create(MiniMessage.miniMessage().deserialize(localization.getString("messages.if-no-avaible-fallbacks.kick-message").trim())));
 
                     return false;
                 }
@@ -84,11 +87,35 @@ public class FallbackListener {
 
     public void sendToFallbackServer(Player player, RegisteredServer fromServer, RegisteredServer toServer) {
         player.createConnectionRequest(toServer).connect().thenAccept(result -> {
-            player.sendMessage(MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.join").replace("{server}", fromServer.getServerInfo().getName()).trim()));
-            player.showTitle(Title.title(
-                    MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.title").replace("{server}", toServer.getServerInfo().getName())),
-                    MiniMessage.miniMessage().deserialize(messagesConfig.getString("messages.fallback.subtitle").replace("{server}", fromServer.getServerInfo().getName())
-            )));
+            if (messagesConfig.getBoolean("messages.fallback.join"))
+                player.sendMessage(MiniMessage.miniMessage().deserialize(localization.getString("messages.fallback.join").replace("{server}",
+                            fromServer.getServerInfo().getName()).trim()));
+
+            if (messagesConfig.getBoolean("messages.fallback.title") && messagesConfig.getBoolean("messages.fallback.subtitle"))
+            {
+                player.showTitle(Title.title(
+                        MiniMessage.miniMessage().deserialize(localization.getString("messages.fallback.title").replace("{server}",
+                                toServer.getServerInfo().getName())),
+                        MiniMessage.miniMessage().deserialize(localization.getString("messages.fallback.subtitle").replace("{server}",
+                                fromServer.getServerInfo().getName())
+                        )));
+            }
+
+            else if (!messagesConfig.getBoolean("messages.fallback.title") && messagesConfig.getBoolean("messages.fallback.subtitle")){
+                player.showTitle(Title.title(
+                        Component.empty(),
+                        MiniMessage.miniMessage().deserialize(localization.getString("messages.fallback.subtitle").replace("{server}",
+                                fromServer.getServerInfo().getName())
+                        )));
+            }
+
+            else if (messagesConfig.getBoolean("messages.fallback.title") && !messagesConfig.getBoolean("messages.fallback.subtitle")) {
+                player.showTitle(Title.title(
+                        MiniMessage.miniMessage().deserialize(localization.getString("messages.fallback.title").replace("{server}",
+                                toServer.getServerInfo().getName())),
+                        Component.empty()
+                        ));
+            }
         });
 
         plugin.getLogger().warn("Player sent to fallback server: {}", toServer.getServerInfo().getName());
@@ -109,7 +136,7 @@ public class FallbackListener {
                 .setName(config.getString("settings.limbo.name"))
                 .setShouldRespawn(true);
 
-        plugin.getLogger().info("Limbo created");
+        plugin.getLogger().warn("Limbo created");
     }
 
     private void sendToLimbo(Player player, RegisteredServer server) {
